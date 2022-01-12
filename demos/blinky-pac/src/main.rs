@@ -10,11 +10,25 @@ use pac::gpio::{self, vals};
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
-    defmt::println!("Hello, World!");
+    // Enable GPIO clock
+    let rcc = pac::RCC;
+    unsafe {
+        rcc.ahb2enr().modify(|w| {
+            w.set_gpioben(true);
+            w.set_gpiocen(true);
+        });
 
+        rcc.ahb2rstr().modify(|w| {
+            w.set_gpiobrst(true);
+            w.set_gpiocrst(true);
+            w.set_gpiobrst(false);
+            w.set_gpiocrst(false);
+        });
+    }
+
+    // Setup button
     let gpioc = pac::GPIOC;
     const BUTTON_PIN: usize = 13;
-    // Setup button
     unsafe {
         gpioc
             .pupdr()
@@ -28,16 +42,16 @@ fn main() -> ! {
     }
 
     // Setup LED
-    let gpioa = pac::GPIOA;
-    const LED_PIN: usize = 5;
+    let gpiob = pac::GPIOB;
+    const LED_PIN: usize = 14;
     unsafe {
-        gpioa
+        gpiob
             .pupdr()
             .modify(|w| w.set_pupdr(LED_PIN, vals::Pupdr::FLOATING));
-        gpioa
+        gpiob
             .otyper()
             .modify(|w| w.set_ot(LED_PIN, vals::Ot::PUSHPULL));
-        gpioa
+        gpiob
             .moder()
             .modify(|w| w.set_moder(LED_PIN, vals::Moder::OUTPUT));
     }
@@ -46,9 +60,9 @@ fn main() -> ! {
     loop {
         unsafe {
             if gpioc.idr().read().idr(BUTTON_PIN) == vals::Idr::LOW {
-                gpioa.bsrr().write(|w| w.set_bs(LED_PIN, true));
+                gpiob.bsrr().write(|w| w.set_bs(LED_PIN, true));
             } else {
-                gpioa.bsrr().write(|w| w.set_br(LED_PIN, true));
+                gpiob.bsrr().write(|w| w.set_br(LED_PIN, true));
             }
         }
     }
