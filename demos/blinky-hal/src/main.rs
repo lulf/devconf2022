@@ -15,10 +15,10 @@ fn main() -> ! {
     let button = Input::new(p.PC13, Pull::Up);
 
     loop {
-        if button.is_high().unwrap() {
-            led.set_low().unwrap();
-        } else {
+        if button.is_low().unwrap() {
             led.set_high().unwrap();
+        } else {
+            led.set_low().unwrap();
         }
     }
 }

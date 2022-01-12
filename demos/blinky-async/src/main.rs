@@ -16,12 +16,12 @@ use embedded_hal::digital::v2::{InputPin, OutputPin};
 
 #[embassy::main]
 async fn main(_s: Spawner, p: Peripherals) {
-    let mut led = Output::new(p.PA5, Level::Low, Speed::VeryHigh);
+    let mut led = Output::new(p.PB14, Level::Low, Speed::VeryHigh);
     let mut button = ExtiInput::new(Input::new(p.PC13, Pull::Up), p.EXTI13);
 
     loop {
         button.wait_for_any_edge().await;
-        if button.is_high().unwrap() {
+        if button.is_low().unwrap() {
             led.set_high().unwrap();
         } else {
             led.set_low().unwrap();
