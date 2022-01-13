@@ -1,0 +1,52 @@
+[package]
+authors = [
+    "Ulf Lilleengen <lulf@redhat.com>",
+    "Bob McWhirter <bmcwhirt@redhat.com>",
+    "Jens Reimann <jreimann@redhat.com>",
+    "Dejan Bosanac <dbosanac@redhat.com>"
+]
+edition = "2018"
+name = "wifi"
+version = "0.1.0"
+resolver = "2"
+description = "STM32 IoT Discovery board (iot01a) reporting sensor data using WiFi"
+keywords = ["wifi", "hts221", "stm32l4", "networking", "iot", "stm32", "cloud"]
+
+[workspace]
+
+[dependencies]
+defmt = "0.3"
+defmt-rtt = "0.3"
+panic-probe = { version = "0.3", features = ["print-defmt"] }
+
+drogue-device = { version = "0.1.0", default-features = false, features = ["defmt", "time", "wifi+eswifi", "bsp+b_l475e_iot01a"] }
+cortex-m-rt = "0.7.0"
+# cortex-m = { version = "0.7", features = ["inline-asm"] }
+cortex-m = "0.7.1"
+
+#drogue-tls = { version = "0.5.0", default-features = false, features = ["async", "defmt"], optional = true}
+cfg-if = "1.0.0"
+
+atomic-polyfill = "0.1"
+embassy = { version = "0.1.0", default-features = false, features=["defmt", "time", "time-tick-32768hz"] }
+embassy-stm32 = {version = "0.1.0", default-features = false, features = ["defmt", "time-driver-tim2", "memory-x", "stm32l475vg" ] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde-json-core = { version = "0.4", default-features = false, features = ["heapless"] }
+heapless = "0.7"
+
+embedded-hal = { version = "0.2.4", features = ["unproven"] }
+
+[patch.crates-io]
+embassy = {git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c" }
+embassy-stm32 = {git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c" }
+drogue-device = { git = "https://github.com/drogue-iot/drogue-device.git", rev = "71a9bdc81e37bc881368268388b335f13c975b3d" }
+#drogue-device = { path = "../../../drogue-iot/drogue-device/device" }
+
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false
+incremental = false
+lto = "fat"
+opt-level = 's'
+overflow-checks = false
