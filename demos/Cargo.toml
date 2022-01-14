@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "basic",
+    "blinky-pac",
+    "blinky-hal",
+    "blinky-irq",
+    "blinky-async",
+    "blinky-actors",
+    "sensor",
+    "wifi",
+]
+
+[patch.crates-io]
+embassy = {git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c" }
+embassy-stm32 = {git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c" }
+drogue-device = { git = "https://github.com/drogue-iot/drogue-device.git", rev = "71a9bdc81e37bc881368268388b335f13c975b3d" }
+
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false
+incremental = false
+lto = "fat"
+opt-level = 's'
+overflow-checks = false
