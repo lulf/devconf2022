@@ -15,16 +15,24 @@ use drogue_device::{
     actors::button::{Button, ButtonPressed},
     actors::i2c::I2cPeripheral,
     actors::sensors::Temperature,
-    bsp::{boards::stm32l4::iot01a::*, Board},
     domain::temperature::Celsius,
+    drivers::button::Button as ButtonDriver,
     traits::sensors::temperature::TemperatureSensor,
     *,
 };
 use embassy::executor::Spawner;
-use embassy_stm32::Peripherals;
+use embassy_stm32::{
+    exti::ExtiInput,
+    gpio::{Input, Pull},
+    i2c, interrupt,
+    peripherals::{DMA1_CH4, DMA1_CH5, I2C2, PC13, PD15},
+    time::Hertz,
+    Peripherals,
+};
 
-bind_bsp!(Iot01a, BSP);
-
+type I2c2 = i2c::I2c<'static, I2C2, DMA1_CH4, DMA1_CH5>;
+type UserButton = ButtonDriver<ExtiInput<'static, PC13>>;
+type Hts221Ready = ExtiInput<'static, PD15>;
 type Sensor = Temperature<Hts221Ready, Hts221<Address<I2cPeripheral<I2c2>>>, Celsius>;
 
 static I2C: ActorContext<I2cPeripheral<I2c2>> = ActorContext::new();
@@ -32,20 +40,29 @@ static SENSOR: ActorContext<Sensor> = ActorContext::new();
 static BUTTON: ActorContext<Button<UserButton, ButtonPressed<App>>> = ActorContext::new();
 static APP: ActorContext<App> = ActorContext::new();
 
-#[embassy::main(config = "Iot01a::config(true)")]
+#[embassy::main]
 async fn main(s: Spawner, p: Peripherals) {
-    // Configure board
-    let board = Iot01a::new(p);
+    let i2c2 = i2c::I2c::new(
+        p.I2C2,
+        p.PB10,
+        p.PB11,
+        interrupt::take!(I2C2_EV),
+        p.DMA1_CH4,
+        p.DMA1_CH5,
+        Hertz(100_000),
+    );
 
-    let i2c = I2C.mount(s, I2cPeripheral::new(board.i2c2));
-    let sensor = SENSOR.mount(s, Temperature::new(board.hts221_ready, Hts221::new(i2c)));
+    let hts221_ready_pin = Input::new(p.PD15, Pull::Down);
+    let hts221_ready = ExtiInput::new(hts221_ready_pin, p.EXTI15);
+
+    let user_button = ButtonDriver::new(ExtiInput::new(Input::new(p.PC13, Pull::Up), p.EXTI13));
+
+    let i2c = I2C.mount(s, I2cPeripheral::new(i2c2));
+    let sensor = SENSOR.mount(s, Temperature::new(hts221_ready, Hts221::new(i2c)));
     let app = APP.mount(s, App::new(sensor));
     BUTTON.mount(
         s,
-        Button::new(
-            board.user_button,
-            ButtonPressed(app, AppCommand::ReadSensor),
-        ),
+        Button::new(user_button, ButtonPressed(app, AppCommand::ReadSensor)),
     );
 
     defmt::info!("Application initialized. Press 'User' button to read sensor");
@@ -65,8 +82,7 @@ pub enum AppCommand {
     ReadSensor,
 }
 
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[derive(Clone, Debug, defmt::Format)]
 pub struct TemperatureData {
     pub temp: f32,
     pub hum: f32,
