@@ -6,7 +6,7 @@ use panic_probe as _;
 
 use stm32_metapac as pac;
 
-use pac::gpio::{self, vals};
+use pac::gpio::vals;
 
 #[cortex_m_rt::entry]
 fn main() -> ! {

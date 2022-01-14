@@ -12,25 +12,23 @@ use panic_probe as _;
 
 use drogue_device::drivers::sensors::hts221::Hts221;
 use drogue_device::{
-    actors::wifi::*,
-    actors::button::{ButtonPressed, Button},
-    actors::sensors::Temperature,
+    actors::button::{Button, ButtonPressed},
     actors::i2c::I2cPeripheral,
+    actors::sensors::Temperature,
+    actors::wifi::*,
     bsp::{boards::stm32l4::iot01a::*, Board},
-    drivers::dns::*,
     clients::http::*,
-    traits::wifi::*,
+    domain::temperature::Celsius,
+    drivers::dns::*,
     traits::ip::*,
     traits::sensors::temperature::TemperatureSensor,
-    domain::{
-        temperature::{Celsius},
-    },
+    traits::wifi::*,
     *,
 };
-use embassy_stm32::Peripherals;
 use embassy::executor::Spawner;
-use serde::{Deserialize, Serialize};
+use embassy_stm32::Peripherals;
 use heapless::String;
+use serde::{Deserialize, Serialize};
 
 const WIFI_SSID: &str = drogue::config!("wifi-ssid");
 const WIFI_PSK: &str = drogue::config!("wifi-password");
@@ -70,12 +68,14 @@ async fn main(s: Spawner, p: Peripherals) {
     .expect("Error joining wifi");
     defmt::info!("WiFi network joined");
 
-
     let network = WIFI.mount(s, AdapterActor::new(wifi));
     let i2c = I2C.mount(s, I2cPeripheral::new(board.i2c2));
     let sensor = SENSOR.mount(s, Temperature::new(board.hts221_ready, Hts221::new(i2c)));
     let app = APP.mount(s, App::new(network, sensor));
-    BUTTON.mount(s, Button::new(board.user_button, ButtonPressed(app, AppCommand::Send)));
+    BUTTON.mount(
+        s,
+        Button::new(board.user_button, ButtonPressed(app, AppCommand::Send)),
+    );
 
     defmt::info!("Application initialized. Press 'User' button to send data");
 }
@@ -86,17 +86,13 @@ pub struct App {
 }
 impl App {
     pub fn new(network: Address<Network>, sensor: Address<Sensor>) -> Self {
-        Self {
-            network,
-            sensor,
-        }
+        Self { network, sensor }
     }
-
 }
 
 #[derive(Clone)]
 pub enum AppCommand {
-    Send
+    Send,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -109,13 +105,16 @@ pub struct TemperatureData {
 impl Actor for App {
     type Message<'m> = AppCommand;
 
-
     type OnMountFuture<'m, M>
     where
         M: 'm,
     = impl core::future::Future<Output = ()> + 'm;
 
-    fn on_mount<'m, M>(&'m mut self, _: Address<Self>, inbox: &'m mut M) -> Self::OnMountFuture<'m, M>
+    fn on_mount<'m, M>(
+        &'m mut self,
+        _: Address<Self>,
+        inbox: &'m mut M,
+    ) -> Self::OnMountFuture<'m, M>
     where
         M: Inbox<Self> + 'm,
         Self: 'm,
@@ -138,8 +137,7 @@ impl Actor for App {
                             PASSWORD,
                         );
 
-                        let tx: String<128> =
-                            serde_json_core::ser::to_string(&data).unwrap();
+                        let tx: String<128> = serde_json_core::ser::to_string(&data).unwrap();
                         let mut rx_buf = [0; 256];
                         let response = client
                             .request(

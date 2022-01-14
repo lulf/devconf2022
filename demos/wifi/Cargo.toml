@@ -5,7 +5,6 @@ authors = [
 edition = "2018"
 name = "wifi"
 version = "0.1.0"
-resolver = "2"
 
 [dependencies]
 defmt = "0.3"
