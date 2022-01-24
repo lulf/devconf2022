@@ -14,7 +14,7 @@ members = [
 [patch.crates-io]
 embassy = {git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c" }
 embassy-stm32 = {git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c" }
-drogue-device = { git = "https://github.com/drogue-iot/drogue-device.git", rev = "71a9bdc81e37bc881368268388b335f13c975b3d" }
+drogue-device = { git = "https://github.com/drogue-iot/drogue-device.git", rev = "7856c168dfb912f43c2be3ae5082c599327c4eac" }
 
 [profile.release]
 codegen-units = 1

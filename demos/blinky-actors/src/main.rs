@@ -31,6 +31,7 @@ async fn main(s: Spawner, p: Peripherals) {
         s,
         Led::new(Output::new(p.PB14, Level::High, Speed::Low).into()),
     );
+
     BUTTON.mount(
         s,
         Button::new(

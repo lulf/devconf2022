@@ -11,7 +11,7 @@ defmt = "0.3"
 defmt-rtt = "0.3"
 panic-probe = { version = "0.3", features = ["print-defmt"] }
 
-drogue-device = { version = "0.1.0", default-features = false, features = ["defmt", "time", "wifi+eswifi"] }
+drogue-device = { version = "0.1.0", default-features = false, features = ["defmt", "time"] }
 cortex-m-rt = "0.7.0"
 cortex-m = "0.7.1"
 

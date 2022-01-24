@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 cortex-m = "0.7.3"
 cortex-m-rt = "0.7.0"
-stm32-metapac = { features = ["stm32l475vg", "memory-x"], git = "https://github.com/embassy-rs/embassy.git", rev = "e7668a86bd118ae8c4eb3e695130d7cac90c1dfe"  }
+stm32-metapac = { features = ["stm32l475vg", "memory-x"], git = "https://github.com/embassy-rs/embassy.git", rev = "0d67ceb066f7b6d3b0163eaa3688b0499439a21c"  }
 
 defmt = "0.3.0"
 defmt-rtt = "0.3.0"

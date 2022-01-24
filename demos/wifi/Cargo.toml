@@ -13,10 +13,8 @@ panic-probe = { version = "0.3", features = ["print-defmt"] }
 
 drogue-device = { version = "0.1.0", default-features = false, features = ["defmt", "time", "wifi+eswifi", "bsp+b_l475e_iot01a"] }
 cortex-m-rt = "0.7.0"
-# cortex-m = { version = "0.7", features = ["inline-asm"] }
 cortex-m = "0.7.1"
 
-#drogue-tls = { version = "0.5.0", default-features = false, features = ["async", "defmt"], optional = true}
 cfg-if = "1.0.0"
 
 atomic-polyfill = "0.1"
